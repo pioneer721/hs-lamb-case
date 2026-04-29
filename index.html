@@ -396,6 +396,124 @@
     -webkit-box-orient: vertical;
   }
 
+  /* ------ Message stream (default home view) ------ */
+  .channel-stream {
+    margin-bottom: 56px;
+  }
+  .stream-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 0 4px 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  .stream-head h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.012em;
+  }
+  .stream-source {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+  .stream-stat {
+    font-size: 12.5px;
+    color: var(--ink-mute);
+    font-feature-settings: "tnum";
+    margin-left: auto;
+  }
+  .stream-doc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all .15s;
+  }
+  .stream-doc:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+    background: var(--paper);
+  }
+  .stream-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .msg-date {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    margin: 22px 0 10px;
+    font-style: italic;
+    letter-spacing: 0.04em;
+  }
+  .msg {
+    background: var(--paper);
+    padding: 12px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .12s, transform .12s, box-shadow .14s;
+    border: 1px solid transparent;
+    max-width: 78%;
+    align-self: flex-start;
+  }
+  .msg.msg-mine {
+    align-self: flex-end;
+    background: #F2EAD8;  /* warm sand for "me" */
+  }
+  .msg:hover {
+    background: #fff;
+    box-shadow: var(--shadow-1);
+  }
+  .msg.msg-mine:hover {
+    background: #F5EFE0;
+  }
+  .msg-meta {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    margin-bottom: 4px;
+    font-size: 11.5px;
+  }
+  .msg-sender {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .msg-time {
+    color: var(--ink-mute);
+    font-feature-settings: "tnum";
+  }
+  .msg-reply {
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    font-style: italic;
+    margin-bottom: 4px;
+    padding-left: 8px;
+    border-left: 2px solid var(--line);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .msg-text {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg-reactions {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+
   /* ------ Modal ------ */
   .modal-backdrop {
     position: fixed; inset: 0;
@@ -1173,54 +1291,69 @@ function render() {
     return;
   }
 
-  // Default: channel-grouped view (no search active)
+  // Default: conversation stream (no search active) — show actual messages, grouped by channel
+  if (!pool.length) {
+    content.innerHTML = '<div class="empty">메시지가 없습니다.</div>';
+    return;
+  }
+  // Group pool by channel, preserving channel order from DATA
+  const byChannel = {};
+  pool.forEach(m => {
+    if (!byChannel[m.channel]) byChannel[m.channel] = [];
+    byChannel[m.channel].push(m);
+  });
   let html = '';
-  const channelsToShow = activeChannels.size ? DATA.filter(ch => activeChannels.has(ch.channel)) : DATA;
-  channelsToShow.forEach(ch => {
+  const orderedChannels = activeChannels.size
+    ? DATA.filter(ch => activeChannels.has(ch.channel))
+    : DATA;
+  orderedChannels.forEach(ch => {
+    const msgs = byChannel[ch.channel] || [];
+    if (!msgs.length) return;
     const docPath = `docs/${encodeURIComponent(ch.channel)}.docx`;
-    const themesHtml = (ch.themes || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
-    const shotsHtml = ch.screenshots.map((s, si) => `
-      <div class="channel-shot" data-channel="${escapeHtml(ch.channel)}" data-shot-idx="${si}">
-        <div class="channel-shot-name">${escapeHtml(s.filename.replace(/Screenshot\s+/, '').replace(/\.png$/, ''))}</div>
-        ${s.context ? `<div class="channel-shot-context">${escapeHtml(s.context)}</div>` : ''}
-      </div>`).join('');
-
-    // Channel-level message count
-    const chMsgs = messageIndex.filter(m => m.channel === ch.channel).length;
-    const summary = ch.summary || '';
-    const summaryNeedsToggle = summary.length > 140;
-
+    let body = '';
+    let curDate = '';
+    msgs.forEach(m => {
+      // Date separator
+      if (m.date && m.date !== curDate) {
+        curDate = m.date;
+        body += `<div class="msg-date">${escapeHtml(m.date)}</div>`;
+      }
+      const sideClass = m.side === 'right' ? ' msg-mine' : '';
+      const replyHtml = m.replyTo
+        ? `<div class="msg-reply">↪ ${escapeHtml(m.replyTo).slice(0, 200)}</div>`
+        : '';
+      body += `
+        <div class="msg${sideClass}" data-channel="${escapeHtml(m.channel)}" data-msg-idx="${m.messageIdx}">
+          <div class="msg-meta">
+            ${m.sender ? `<span class="msg-sender">${escapeHtml(m.sender)}</span>` : ''}
+            ${m.timestamp ? `<span class="msg-time">${escapeHtml(m.timestamp)}</span>` : ''}
+          </div>
+          ${replyHtml}
+          <div class="msg-text">${escapeHtml(m.content)}</div>
+          ${m.reactions ? `<div class="msg-reactions">${escapeHtml(m.reactions)}</div>` : ''}
+        </div>`;
+    });
     html += `
-      <section class="channel-block">
-        <div class="channel-block-head">
+      <section class="channel-stream">
+        <div class="stream-head">
           <h2>${escapeHtml(ch.channel_display_name || ch.channel)}</h2>
-          <span class="source">${escapeHtml(ch.source_app || '')}</span>
-          <span class="stats">
-            <span>${ch.screenshots.length} 스크린샷</span>
-            <span>${chMsgs} 메시지</span>
-          </span>
+          <span class="stream-source">${escapeHtml(ch.source_app || '')}</span>
+          <span class="stream-stat">${msgs.length} 메시지</span>
+          <a class="stream-doc" href="${docPath}" download title="DOCX 다운로드">⤓ docx</a>
         </div>
-        ${summary ? `<p class="channel-summary" data-toggle>${escapeHtml(summary)}</p>` : ''}
-        ${themesHtml ? `<div class="channel-themes">${themesHtml}</div>` : ''}
-        <div class="channel-actions">
-          <a class="doc-link" href="${docPath}" download>📄 ${escapeHtml(ch.channel)}.docx</a>
-        </div>
-        <div class="channel-shots-grid">${shotsHtml}</div>
+        <div class="stream-body">${body}</div>
       </section>`;
   });
   content.innerHTML = html;
 
-  // Wire up per-channel actions
-  Array.from(content.querySelectorAll('.channel-shot')).forEach(el => {
+  // Click any message → open source screenshot
+  Array.from(content.querySelectorAll('.msg')).forEach(el => {
     el.onclick = () => {
-      const ch = channelIndex[el.dataset.channel];
-      const si = parseInt(el.dataset.shotIdx, 10);
-      openModal(ch, si);
+      const ch = el.dataset.channel;
+      const idx = parseInt(el.dataset.msgIdx, 10);
+      const shotIdx = findScreenshotForMessage(ch, idx);
+      openModal(channelIndex[ch], shotIdx);
     };
-  });
-  // Channel summary expand on click
-  Array.from(content.querySelectorAll('.channel-summary[data-toggle]')).forEach(el => {
-    el.onclick = () => el.classList.toggle('expanded');
   });
 }
 
