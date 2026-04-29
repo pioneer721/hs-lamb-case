@@ -44,7 +44,7 @@
     padding: 56px 32px 120px;
   }
   header.hero {
-    margin-bottom: 32px;
+    margin-bottom: 22px;
   }
   .eyebrow {
     font-size: 11.5px;
@@ -55,10 +55,10 @@
     font-weight: 600;
   }
   h1 {
-    font-size: 40px;
+    font-size: 32px;
     font-weight: 600;
-    letter-spacing: -0.022em;
-    margin: 0 0 10px;
+    letter-spacing: -0.02em;
+    margin: 0;
     color: var(--ink);
     line-height: 1.1;
   }
@@ -72,15 +72,15 @@
   /* ------ Search ------ */
   .search-wrap {
     position: relative;
-    margin: 32px 0 14px;
+    margin: 26px 0 16px;
   }
   .search-input {
     width: 100%;
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 16px 56px 16px 50px;
-    font-size: 16px;
+    padding: 18px 60px 18px 56px;
+    font-size: 17px;
     font-family: inherit;
     color: var(--ink);
     outline: none;
@@ -396,7 +396,115 @@
     -webkit-box-orient: vertical;
   }
 
-  /* ------ Message stream (default home view) ------ */
+  /* ------ Empty/welcome state (default — no search, no channel) ------ */
+  .welcome {
+    padding: 28px 0 60px;
+  }
+  .welcome-section + .welcome-section {
+    margin-top: 36px;
+  }
+  .welcome-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 14px;
+    font-weight: 600;
+    padding: 0 4px;
+  }
+  .suggestion-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .suggestion {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .suggestion:hover {
+    background: #fff;
+    border-color: var(--ink-mute);
+    color: var(--ink);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-1);
+  }
+  .suggestion .sg-label {
+    font-weight: 500;
+  }
+  .suggestion .sg-hint {
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-left: 6px;
+    font-feature-settings: "tnum";
+  }
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .channel-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .channel-card:hover {
+    background: #fff;
+    border-color: var(--ink-mute);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-1);
+  }
+  .channel-card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .channel-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .channel-card-app {
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-left: auto;
+  }
+  .channel-card-stats {
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-feature-settings: "tnum";
+  }
+  .footer-stats {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-soft);
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+  }
+  .footer-stats strong {
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-feature-settings: "tnum";
+  }
+
+  /* ------ Message stream (channel browse view) ------ */
   .channel-stream {
     margin-bottom: 56px;
   }
@@ -942,23 +1050,16 @@
   <div class="shell" id="shell" style="display:none;">
     <header class="hero">
       <p class="eyebrow">lamb276 · 한현수 분쟁 Legal</p>
-      <h1>대화 기록 — Conversation Archive</h1>
-      <p class="subtitle">스크린샷에서 추출한 대화를 검색하고, 클릭해서 원본을 확인하세요.</p>
+      <h1>대화 기록</h1>
     </header>
 
     <div class="search-wrap" id="searchWrap">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/>
       </svg>
-      <input class="search-input" id="search" placeholder="대화 내용, 발신자, 키워드, 해시태그 검색…" autocomplete="off">
+      <input class="search-input" id="search" placeholder="이름, 금액, 키워드를 검색하세요…" autocomplete="off">
       <span class="search-kbd" id="searchKbd">⌘K</span>
       <button class="search-clear" id="searchClear" title="지우기 (Esc)">×</button>
-    </div>
-
-    <div class="meta-row">
-      <span class="stat"><strong id="totalChannels">__</strong> 채널</span>
-      <span class="stat"><strong id="totalMessages">__</strong> 메시지</span>
-      <span class="stat"><strong id="totalScreenshots">__</strong> 스크린샷</span>
     </div>
 
     <div class="channel-chips" id="channelChips"></div>
@@ -1144,10 +1245,7 @@ DATA.forEach((ch) => {
   });
 });
 
-document.getElementById('totalChannels').textContent = DATA.length;
-document.getElementById('totalMessages').textContent = messageIndex.length;
-document.getElementById('totalScreenshots').textContent =
-  DATA.reduce((acc, ch) => acc + ch.screenshots.length, 0);
+// (Stats now shown in welcome footer only)
 
 const chipsEl = document.getElementById('channelChips');
 let activeChannels = new Set();
@@ -1233,6 +1331,22 @@ function findScreenshotForMessage(channel, messageIdx) {
   return 0;
 }
 
+// Curated suggested searches for THIS legal case
+const SUGGESTIONS = [
+  { label: '한현수', hint: '본인' },
+  { label: '김영훈', hint: 'CEO' },
+  { label: '윤인규', hint: 'In-Kyu Yun' },
+  { label: 'Logan', hint: '윤민근' },
+  { label: 'MEXC', hint: '상장/딜리스팅' },
+  { label: '횡령', hint: '법적 용어' },
+  { label: '외주계약', hint: '계약 형태' },
+  { label: 'IDO', hint: '핵심 용어' },
+  { label: 'TGE', hint: '핵심 용어' },
+  { label: '23,937,065원', hint: '입금 건' },
+  { label: '15k USDT', hint: '선수금' },
+  { label: '회수금', hint: 'Bybit/IQfi' },
+];
+
 function render() {
   const q = searchEl.value.trim();
   const content = document.getElementById('content');
@@ -1252,6 +1366,70 @@ function render() {
     );
   }
 
+  // STATE 1: No search, no channel filter → welcome with suggestions
+  if (!q && activeChannels.size === 0) {
+    const total = messageIndex.length;
+    const totalShots = DATA.reduce((acc, ch) => acc + ch.screenshots.length, 0);
+    const suggestionsHtml = SUGGESTIONS.map(s => {
+      const count = messageIndex.filter(m =>
+        m.content.toLowerCase().includes(s.label.toLowerCase()) ||
+        m.sender.toLowerCase().includes(s.label.toLowerCase()) ||
+        m.themes.some(t => t.toLowerCase().includes(s.label.toLowerCase()))
+      ).length;
+      return `<button class="suggestion" data-q="${escapeHtml(s.label)}">
+        <span class="sg-label">${escapeHtml(s.label)}</span>
+        <span class="sg-hint">${escapeHtml(s.hint)} · ${count}</span>
+      </button>`;
+    }).join('');
+    const channelsHtml = DATA.map(ch => {
+      const chMsgs = messageIndex.filter(m => m.channel === ch.channel).length;
+      return `<div class="channel-card" data-channel="${escapeHtml(ch.channel)}">
+        <div class="channel-card-top">
+          <span class="channel-card-name">${escapeHtml(ch.channel_display_name || ch.channel)}</span>
+          <span class="channel-card-app">${escapeHtml(ch.source_app || '')}</span>
+        </div>
+        <div class="channel-card-stats">${chMsgs} 메시지 · ${ch.screenshots.length} 스크린샷</div>
+      </div>`;
+    }).join('');
+    content.innerHTML = `
+      <div class="welcome">
+        <div class="welcome-section">
+          <p class="welcome-label">자주 찾는 키워드</p>
+          <div class="suggestion-grid">${suggestionsHtml}</div>
+        </div>
+        <div class="welcome-section">
+          <p class="welcome-label">채널별 보기</p>
+          <div class="channel-grid">${channelsHtml}</div>
+        </div>
+        <div class="footer-stats">
+          <strong>${DATA.length}</strong> 채널 ·
+          <strong>${total.toLocaleString()}</strong> 메시지 ·
+          <strong>${totalShots}</strong> 스크린샷 ·
+          메시지 클릭 → 원본 스크린샷
+        </div>
+      </div>`;
+    // Wire up suggestion clicks
+    Array.from(content.querySelectorAll('.suggestion')).forEach(el => {
+      el.onclick = () => {
+        searchEl.value = el.dataset.q;
+        searchWrap.classList.add('has-value');
+        render();
+        searchEl.focus();
+      };
+    });
+    Array.from(content.querySelectorAll('.channel-card')).forEach(el => {
+      el.onclick = () => {
+        activeChannels.clear();
+        activeChannels.add(el.dataset.channel);
+        renderChips();
+        render();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      };
+    });
+    return;
+  }
+
+  // STATE 2: Search active → results only
   if (q) {
     if (!pool.length) {
       content.innerHTML = `<div class="empty">"${escapeHtml(q)}"에 대한 검색 결과가 없습니다.<div class="empty-hint">다른 키워드를 시도하거나 채널 필터를 해제해보세요.</div></div>`;
@@ -1291,7 +1469,7 @@ function render() {
     return;
   }
 
-  // Default: conversation stream (no search active) — show actual messages, grouped by channel
+  // STATE 3: Channel filter active (no search) → conversation stream for selected channel(s)
   if (!pool.length) {
     content.innerHTML = '<div class="empty">메시지가 없습니다.</div>';
     return;
